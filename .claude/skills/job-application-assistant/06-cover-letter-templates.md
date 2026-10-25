@@ -1,5 +1,5 @@
 ---
-framework_version: 1.0.2
+framework_version: 1.0.3
 ---
 
 # Cover Letter Templates and Tailoring Guide
@@ -172,6 +172,11 @@ Escape these wherever they appear in body text:
 - [ ] Language matches the job posting language
 - [ ] Salutation is appropriate (named person if possible)
 - [ ] Headline is engaging and specific, not generic
+
+### UAE Applications
+- **Residency and availability:** when the recruiter cannot tell from the CV, say it in one line: where the candidate is based, their visa situation, and when they can start (for example "based in [CITY] on a [VISA_STATUS], available from [DATE]"). State only what is true.
+- **Salary:** do not state a figure unless the posting asks. If it does, give a monthly package range in AED and say whether it is basic plus allowances or all-in.
+- **Emiratisation roles:** if the posting prefers UAE nationals and the candidate is not one, do not hide it. Cover the fit plainly in the letter rather than arguing the preference away.
 
 ## Submission Guidelines (Best Practice)
 - Submit only the documents the employer requests

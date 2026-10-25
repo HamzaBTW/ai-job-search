@@ -1,5 +1,5 @@
 ---
-framework_version: 1.2.7
+framework_version: 1.2.8
 ---
 
 # Job Evaluation Framework
@@ -45,6 +45,26 @@ Read the posting's language requirements as stated for **the role itself** — n
 Judge the level comparison the same way you judge everything else in this framework: read both sides as written and reason about it, don't force either into a rigid scale — CEFR letters, LinkedIn-style buckets ("professional working proficiency"), and plain-English words ("conversational," "fluent," "native") all appear in the wild and don't map onto each other precisely. When genuinely unsure whether a stated bar exceeds the candidate's level, prefer FLAG over a silent PASS — the human is meant to be the tiebreaker, not the gate.
 
 **Worked example:** a candidate whose Languages table lists Spanish (Native) and English (B1/B2). A posting requiring "fluent Russian" → **FAIL**, Russian isn't declared at all. A posting requiring "fluent English" → **FLAG**, English is declared but "fluent" plausibly exceeds B1/B2 — score and draft the application, but tell the candidate this posting's bar may be a stretch and let them decide. A posting requiring "conversational English" or unspecified English → **PASS**, B1/B2 clears a "conversational" bar cleanly.
+
+## UAE Market Notes — apply when the target country is the United Arab Emirates
+
+These checks sit beside the gates above and reuse their verdicts. They add no scoring dimension.
+
+**Emiratisation (Eligibility Gate).** Many employers have Emiratisation targets, and government and semi-government employers often prioritise UAE nationals. Classify the posting's wording with the Eligibility Gate table:
+
+| Posting wording | Verdict |
+|---|---|
+| "UAE nationals only", "Emiratis only" and a candidate who is not a UAE national | **FAIL — hard stop.** Quote the exact wording. |
+| "Emirati preferred", "priority to UAE nationals", or another nationality preference ("Arab nationals preferred") | **FLAG, then proceed.** Quote it and tell the user the applicant pool is skewed. |
+| Silent | **PROCEED, unverified.** Government and semi-government employers are the highest-risk category; check the employer's careers page. |
+
+**Residency and visa (Location & Logistics).** `/setup` records the candidate's status (for example employer-sponsored employment visa, family-sponsored, Golden Visa, or abroad with no UAE visa). Compare it with the posting: "visa provided", "sponsorship" or a relocation package is a **PASS** worth noting; "UAE residents only" or "own visa required" against a candidate without UAE residence is a **FAIL**; silence means ask the user or check the employer's careers page. For a candidate who is moving to the UAE, relocation there is expected and is not the dimension-4 relocation deal-breaker; apply the profile's own constraints instead.
+
+**Notice period and start date.** Notice periods are set by the employment contract. Compare the candidate's notice period from the profile with the posting's start date, and **FLAG** a mismatch such as "immediate joiner" against a long notice.
+
+**Compensation.** UAE offers are usually quoted as a monthly AED package: basic salary plus housing, transport and other allowances. Compare total monthly package and its split, and treat "AED X all-in" and "AED X basic plus allowances" as different offers. Also look at annual flight tickets, health insurance, visa costs and end-of-service gratuity, which is calculated on basic salary, so a low basic with high allowances lowers it. The UAE levies no personal income tax, so compare gross figures only against other UAE offers.
+
+**Arabic.** The Language Gate applies unchanged. Only a job-condition requirement counts ("Arabic required"); "Arabic is a plus" does not. Postings that ask for an "Arabic speaker" usually mean spoken Arabic, so a candidate whose spoken and written levels differ should declare both in the Languages table (for example "Arabic — fluent spoken, basic written").
 
 ## Scoring Dimensions
 
