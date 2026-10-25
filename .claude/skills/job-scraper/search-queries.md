@@ -19,6 +19,14 @@ Primary (UAE-usable sources - scaffold more with `/add-portal`):
 - **[YOUR_JOB_BOARD]** - any UAE board you add with `/add-portal`; the `site:[YOUR_JOB_BOARD]` lines below apply only once you have one, otherwise use the `linkedin.com/jobs` lines
 - **[YOUR_INDUSTRY_JOB_BOARD]** - a niche/industry board for your field (optional)
 
+Checked for `/add-portal` in October 2026 and not scaffolded (re-check before relying on this; sites change):
+- **Bayt.com, GulfTalent** - bot protection blocks automated requests; only a paid unblocker would get through, which this repo does not use
+- **NaukriGulf** - robots.txt could not be confirmed, so it counts as not allowed
+- **Glassdoor** - login required
+- **Dubai Careers (dubaicareers.ae)** - robots.txt unreachable (connection reset), so not allowed; applying needs an account anyway
+- **Federal government jobs** - FAHR links to the federal iRecruitment portal, where you register to browse openings; login required. `fahr.gov.ae` and `mohre.gov.ae` list no vacancies themselves
+- **Dubizzle Jobs** - robots.txt permits `/jobs/`, but its terms of use could not be fetched, so automated access is unconfirmed. Read the terms yourself before building a skill; the listings skew towards entry-level and mass-market roles
+
 Secondary (company career pages via Google):
 - Direct Google searches with `site:` filters for known target companies (employer careers pages)
 
