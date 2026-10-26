@@ -1,5 +1,5 @@
 ---
-framework_version: 1.0.0
+framework_version: 1.0.1
 ---
 
 # Interview Preparation Guide
@@ -55,6 +55,24 @@ Keep answers to 1-2 minutes. Be specific. End with what you learned or would do 
 
 ### "Why this company specifically?"
 > Customize per company. Must reference: specific projects, company values, market position, or team structure. Never give a generic answer.
+
+## UAE Interview Questions
+
+Prepare these when interviewing in the UAE. Answers belong to the candidate; write only what is true.
+
+### "What is your visa status, and are you in the UAE now?"
+> [PREPARE YOUR ANSWER - current status, whether it is transferable, and if abroad, how soon you can relocate]
+
+### "What is your notice period / when can you join?"
+> [PREPARE YOUR ANSWER - notice period under your current contract and whether it can be shortened]
+
+### "What is your current and expected package?"
+> [PREPARE YOUR ANSWER - monthly figures as basic salary plus housing, transport and other allowances; give a range; know your walk-away number]
+
+### "How long do you plan to stay in the UAE?"
+> [PREPARE YOUR ANSWER - employers worry about retention and visa costs; be honest and tie your answer to the role]
+
+Questions worth adding to the ones below: the probation period, how soon the visa, labour card and health insurance are processed, whether flight tickets and end-of-service gratuity are included, and the working week and hours.
 
 ## Questions You Should Ask Interviewers
 

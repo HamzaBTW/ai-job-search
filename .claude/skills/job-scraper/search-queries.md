@@ -1,6 +1,6 @@
 # Search Queries for Job Scraper
 
-<!-- SETUP: Customize these queries based on your skills, target roles, and location -->
+<!-- SETUP: Customize these queries based on your skills and target roles. Location terms are pre-set for the UAE (see "UAE Locations"). -->
 
 ## Installed portal CLIs (primary for `/scrape`)
 
@@ -12,14 +12,40 @@ The `site:` query templates in this file are the **WebSearch fallback** — for 
 
 ## Search Sites
 
-Primary (your market's job boards - scaffold one with `/add-portal`):
-- **[YOUR_JOB_BOARD]** - your market's largest general job board
-- **linkedin.com/jobs** - LinkedIn job listings (filter: [YOUR_COUNTRY] / [YOUR_CITY]); also covered by `linkedin-search` CLI
+Primary (UAE-usable sources - scaffold more with `/add-portal`):
+- **linkedin.com/jobs** - LinkedIn job listings, filtered to the United Arab Emirates; also covered by the `linkedin-search` CLI (personal use only, keep volume low)
+- **freehire** - tech roles via the `freehire-search` CLI (`--country AE`, or `--region mena`)
+- **Indeed** - through the claude.ai Indeed connector only, never scraped (its terms prohibit scraping)
+- **[YOUR_JOB_BOARD]** - any UAE board you add with `/add-portal`; the `site:[YOUR_JOB_BOARD]` lines below apply only once you have one, otherwise use the `linkedin.com/jobs` lines
 - **[YOUR_INDUSTRY_JOB_BOARD]** - a niche/industry board for your field (optional)
-- **[YOUR_ADDITIONAL_JOB_BOARD]** - another major board for your market (optional)
+
+Checked for `/add-portal` in October 2026 and not scaffolded (re-check before relying on this; sites change):
+- **Bayt.com, GulfTalent** - bot protection blocks automated requests; only a paid unblocker would get through, which this repo does not use
+- **NaukriGulf** - robots.txt could not be confirmed, so it counts as not allowed
+- **Glassdoor** - login required
+- **Dubai Careers (dubaicareers.ae)** - robots.txt unreachable (connection reset), so not allowed; applying needs an account anyway
+- **Federal government jobs** - FAHR links to the federal iRecruitment portal, where you register to browse openings; login required. `fahr.gov.ae` and `mohre.gov.ae` list no vacancies themselves
+- **Dubizzle Jobs** - robots.txt permits `/jobs/`, but its terms of use could not be fetched, so automated access is unconfirmed. Read the terms yourself before building a skill; the listings skew towards entry-level and mass-market roles
 
 Secondary (company career pages via Google):
-- Direct Google searches with `site:` filters for known target companies
+- Direct Google searches with `site:` filters for known target companies (employer careers pages)
+
+### Sources deliberately not used
+
+Bayt, GulfTalent, NaukriGulf and Glassdoor are **not** in the lists above, and not as `site:` fallbacks either: each was checked and either blocks automated access (Cloudflare challenge), requires a login, or could not have its robots.txt confirmed. A `site:` query would only route around that decision.
+
+This is a status, not a ban on the portals. If you can build a compliant integration (robots.txt honored, no cookie reuse, no paid unblocking, no Cloudflare bypass), add it with `/add-portal` and send a PR.
+
+## UAE CLI usage
+
+```
+# LinkedIn - personal use only, keep volume low
+bun run .agents/skills/linkedin-search/cli/src/cli.ts search -q "<title>" -l "Dubai, United Arab Emirates" --jobage 14 --format table
+
+# freehire - tech roles; --country takes ISO codes, --region mena widens to the Middle East and North Africa
+bun run .agents/skills/freehire-search/cli/src/cli.ts search -q "<keyword>" --country AE --jobage 14 --format table
+bun run .agents/skills/freehire-search/cli/src/cli.ts search -q "<keyword>" --region mena --jobage 14 --format table
+```
 
 ## Query Categories
 
@@ -67,14 +93,26 @@ site:linkedin.com/jobs "[YOUR_KEY_SKILL] developer" [YOUR_CITY]
 site:[YOUR_JOB_BOARD] "technical consultant" [YOUR_DOMAIN] [YOUR_CITY]
 ```
 
-## Location Filter
+## UAE Locations
 
-When evaluating results, verify the job location is within reasonable commute distance from your home. Define acceptable areas:
-- [YOUR_CITY] and surrounding areas
-- [ACCEPTABLE_AREA_1]
-- [ACCEPTABLE_AREA_2]
-- [BORDERLINE_AREA] (borderline - ~X min by transit)
-- [TOO_FAR_AREA] (too far)
+Combine the location terms below with each query where the site supports it. Dubai and Abu Dhabi come first because most postings sit there.
+
+| Priority | Term (use in queries) | LinkedIn `-l` value |
+|---|---|---|
+| 1 | Dubai | `"Dubai, United Arab Emirates"` |
+| 1 | Abu Dhabi | `"Abu Dhabi, United Arab Emirates"` |
+| 2 | Sharjah | `"Sharjah, United Arab Emirates"` |
+| 2 | Ajman | `"Ajman, United Arab Emirates"` |
+| 3 | Ras Al Khaimah | `"Ras Al Khaimah, United Arab Emirates"` |
+| 3 | Fujairah | `"Fujairah, United Arab Emirates"` |
+| 3 | Umm Al Quwain | `"Umm Al Quwain, United Arab Emirates"` |
+| any | UAE-wide / remote UAE-based | `"United Arab Emirates"` |
+
+Free-zone names (DIFC, ADGM, DMCC, Dubai Internet City, Masdar City) are optional hints that narrow a query to an employer cluster; do not rely on them as filters.
+
+Replace `[YOUR_CITY]` in the templates above with one of these terms, or run one query per priority-1 emirate. `[YOUR_COUNTRY]` is `United Arab Emirates` (or `UAE`).
+
+When evaluating results, verify the job location is an emirate you can live and work in (commute between emirates is long: Dubai to Abu Dhabi is roughly 90 minutes by road). Define your acceptable emirates in CLAUDE.md.
 
 ## Language Filter
 

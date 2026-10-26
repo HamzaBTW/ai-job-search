@@ -74,6 +74,14 @@ Run all portal CLI calls in parallel where possible using the Agent tool. Collec
 
 If a CLI tool exits with a non-zero code, log the error message and continue — do not abort the whole search.
 
+#### 1d. Indeed connector (optional)
+
+Indeed's terms prohibit scraping, so it is never searched through a CLI, `WebSearch` or `WebFetch`. The only approved route is the claude.ai Indeed connector, and only when its tools (`search_jobs`, `get_job_details`) are available in this session. They are deliberately not in this skill's `allowed-tools`, so Claude Code asks before the first call. If they are not, skip this step silently and note it for the Step 5 summary; never tell the user to run `claude mcp add` and never try another route to Indeed.
+
+When available, run `search_jobs` once per query from the priority categories chosen in Step 1, with `search` = the job title or keywords, `location` = a UAE city from `search-queries.md` (e.g. "Dubai"), and `country_code` = `AE`. Keep the call count in line with a portal CLI run (the same top categories, no per-city fan-out beyond the configured cities). The tool has no recency filter, so drop results whose posting date is older than 14 days when the output states one; when it states none, keep the result and let Step 4 store `posted_date: null`.
+
+Tag each result with portal `indeed` and `source` `connector`, and keep the job ID and apply link exactly as returned (do not strip URL parameters). Pool the results with Step 1b's for Step 2.
+
 #### 1c. WebSearch fallback
 
 Use `WebSearch` for:
@@ -111,6 +119,8 @@ such a job, never silently drop it: write its entry to `job_scraper/seen_jobs.js
 looks identical to a job never seen, and the recorded status is what makes a later
 ghost report self-triaging. `isActive: true` is only the absence of that banner, not
 proof the posting is open; deadlines and dead URLs remain `/rank`'s job.
+
+**From connector results:** Call `get_job_details` with the job ID for jobs worth a deeper look and extract the same fields. Never `WebFetch` an Indeed URL.
 
 **From WebSearch results:** Use `WebFetch` on the posting URL and extract the same
 fields manually. If it returns HTTP 403, retry with browser headers via `python3 tools/fetch_page.py` per
@@ -171,7 +181,7 @@ It prints one line: the canonical key for that posting. The key must be a pure f
       "fit": "high/medium/low",
       "status": "new/skipped/ranked/expired/unreachable",
       "portal": "<source portal skill, e.g. jobindex-search>",
-      "source": "cli/websearch"
+      "source": "cli/websearch/connector"
     }
   }
 }
@@ -187,7 +197,7 @@ The tool rechecks deduplication against the current state and tracker, computes 
 
 The `portal` field records which CLI skill produced the job (results are already tagged per portal in Step 1b - persist that tag here). Entries written before this field existed lack it; the health check (Step 4.75) attributes those by matching the URL's domain against each portal's base URL, so do not backfill.
 
-The `source` field records which mechanism produced the entry: `cli` for Step 1b portal-CLI output, `websearch` for the Step 1c fallback. This is what keeps a ghost-job report diagnosable after the run's summary is gone: a stored entry whose URL later resolves to nothing (or to a different job) reads very differently depending on whether it came from live CLI output or from a search index that can be weeks stale - and a presented job with no entry here at all points at fabrication, which Rule 1 forbids. Entries written before this field existed lack it; never backfill it - the mechanism was not recorded.
+The `source` field records which mechanism produced the entry: `cli` for Step 1b portal-CLI output, `websearch` for the Step 1c fallback, `connector` for Step 1d Indeed connector output. This is what keeps a ghost-job report diagnosable after the run's summary is gone: a stored entry whose URL later resolves to nothing (or to a different job) reads very differently depending on whether it came from live CLI output or from a search index that can be weeks stale - and a presented job with no entry here at all points at fabrication, which Rule 1 forbids. Entries written before this field existed lack it; never backfill it - the mechanism was not recorded.
 
 `/rank` extends this schema additively: ranked entries also carry `rank_score` (0–100 overall score), `rank_verdict` (fit band, e.g. "strong fit"), `rank_date` (ISO date of ranking), the veto fields `location_verdict` and `language_gate` (both PASS/FAIL/FLAG) with `language_note` (the quoted requirement explaining a non-PASS), and `strengths`/`gaps` (1-3 verbatim bullets each, copied from the scoring agent's findings). The `status` field is set to `"ranked"`. Do not drop any of these fields when re-writing entries. Entries ranked before `strengths`/`gaps` existed simply lack them; readers tolerate their absence and never backfill by guessing. Entries ranked before the verdict rename may carry a legacy PASS/FAIL/FLAG string in `location` - read that as the verdict when `location_verdict` is absent; in fresh entries `location` is always a place, never a verdict.
 
@@ -226,7 +236,7 @@ specific person was found; these are search links, not results.
 
 Scraper-based portal CLIs rot silently: when a portal changes its markup, the parser usually exits 0 with zero results or with null/garbled fields, and the Step 1c fallback never fires because it only triggers on hard failure. This step catches that from evidence the run already holds.
 
-**Free pass (no extra requests).** For each enabled portal that ran in Step 1b:
+**Free pass (no extra requests).** For each enabled portal that ran in Step 1b (the Step 1d Indeed connector is not a scraper CLI and is exempt):
 
 - **Degraded scan:** inspect the results it returned this run. Flags: `company` null or empty on every result, empty titles, undecoded entities (`&amp;`) or HTML fragments in titles, URLs that do not point at the portal. Any of these means the parser is half-working and `/scrape` is silently collecting junk.
 - **Yield history:** if the portal returned zero results across all of this run's queries, run `python3 tools/scrape_state.py history --portal <skill-name> --domain <portal-host>` (the host from that portal's documented base URL). It counts prior `job_scraper/seen_jobs.json` entries by `portal`, or by URL host for entries predating that field, without loading the history into context. A portal that produced jobs on earlier runs and produces nothing now is suspect - the same queries worked before.
@@ -242,7 +252,8 @@ Scraper-based portal CLIs rot silently: when a portal changes its markup, the pa
 Present new jobs in a table sorted by fit (high first). When Step 1b skipped
 portals (`enabled: false`), report them with the `skipped (disabled):` line below
 so opting one out stays visible rather than silent; omit the line when nothing
-was skipped. When any portal's results came from the Step 1c fallback this run
+was skipped. When the Indeed connector was unavailable in Step 1d, add
+`skipped (not connected): indeed` the same way. When any portal's results came from the Step 1c fallback this run
 (bun unavailable, or its CLI failed at runtime), report it with the
 `fallback (websearch):` line - fallback results come from a search index that
 can be stale, so the reader should know which rows carry that caveat; omit the
@@ -308,3 +319,4 @@ If the user decides to apply to any job, the tracker row is written by **job-app
 7. **No automated people lookups.** Referral contacts (Step 4.5) are LinkedIn search links only - never fetch or scrape LinkedIn people-search result pages programmatically.
 8. **Health checks are bounded and honest.** Step 4.75 spends at most one probe, one retry, and (in `health` mode) one detail fetch per portal - a diagnosis, not a crawl. A rate-limit is never evidence of breakage. Health verdicts come only from observed CLI output; a portal that could not be tested is reported as inconclusive, never guessed. The `enabled` toggle is the only thing the health check may edit, and only with confirmation.
 9. **Flag distribution patterns, never accuse.** The mass-posting signal (Step 2.5) describes how a listing is being distributed, not a claim that the employer is a scam. Never name a company as fraudulent or untrustworthy - present the observation and let the user decide.
+10. **Indeed only through the connector.** Never scrape, WebSearch-fetch or browser-automate Indeed; if the connector is missing, skip it and say so.

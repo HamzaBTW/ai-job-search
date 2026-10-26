@@ -1,5 +1,5 @@
 ---
-framework_version: 1.4.8
+framework_version: 1.4.9
 ---
 
 # CV Templates and Tailoring Guide
@@ -358,6 +358,18 @@ Cut the lowest-total-score line first, regardless of which section it sits in.
 - Do not mechanically cut from the bottom of a static section list without checking relevance. "Cut the oldest role first" is wrong if that role is literally about the skill the posting asks for.
 - Do not cut the one concrete example the cover letter leans on. Relevance is measured against the cover letter you wrote, not just the job posting — interviewers will have read both.
 - Do not cut to fit if the fit is borderline (2.02 pages). Prefer `\enlargethispage{2-3\baselineskip}` on a late section for near-misses; reserve content cuts for genuine overflow (content on page 3 that is more than a single trailing section).
+
+## UAE CV Conventions
+
+Apply these when the target country is the United Arab Emirates. They are guidance for tailoring; the template, page budget and ATS rules above are unchanged.
+
+- **Nationality and visa status:** UAE recruiters commonly look for them near the top. Put them as literal text in the contact/profile area (for example `Nationality: [NATIONALITY] | Visa: [VISA_STATUS]`) so ATS extraction sees them. State only what is true and current.
+- **Photo and date of birth:** optional. Include them only if the user wants to; never add either by default.
+- **Availability:** a notice period or availability date ("Notice period: [NOTICE_PERIOD]", or "Available immediately") is acceptable in the profile line. Do not put current salary or salary expectations on the CV; answer those in the application form or when asked.
+- **Languages:** list English and Arabic (and any other working language) with levels. Where spoken and written Arabic differ, say so. See the Languages table guidance in the Candidate Profile and the Language Gate in `04-job-evaluation.md`.
+- **Attestation:** mention an attested degree only if the attestation is completed.
+- **Never** put an Emirates ID, passport or visa file number on a CV.
+- **Employer locations:** give city and country for each role (for example "Dubai, UAE"), since recruiters filter on UAE experience.
 
 ## Recommended Section Order
 
