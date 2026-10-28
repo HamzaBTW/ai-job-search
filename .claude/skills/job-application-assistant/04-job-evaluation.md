@@ -1,5 +1,5 @@
 ---
-framework_version: 1.2.8
+framework_version: 1.2.9
 ---
 
 # Job Evaluation Framework
@@ -60,9 +60,9 @@ These checks sit beside the gates above and reuse their verdicts. They add no sc
 
 **Residency and visa (Location & Logistics).** `/setup` records the candidate's status (for example employer-sponsored employment visa, family-sponsored, Golden Visa, or abroad with no UAE visa). Compare it with the posting: "visa provided", "sponsorship" or a relocation package is a **PASS** worth noting; "UAE residents only" or "own visa required" against a candidate without UAE residence is a **FAIL**; silence means ask the user or check the employer's careers page. For a candidate who is moving to the UAE, relocation there is expected and is not the dimension-4 relocation deal-breaker; apply the profile's own constraints instead.
 
-**Notice period and start date.** Notice periods are set by the employment contract. Compare the candidate's notice period from the profile with the posting's start date, and **FLAG** a mismatch such as "immediate joiner" against a long notice.
+**Notice period and start date.** Notice periods are set by the employment contract. Under the federal Labour Law (Federal Decree-Law No. 33 of 2021, Article 43) it must be 30 to 90 days, normally the same for both parties. During probation, which lasts at most six months (Article 9), a worker moving to another UAE employer gives at least one month's notice. Compare the candidate's notice period from the profile with the posting's start date, and **FLAG** a mismatch such as "immediate joiner" against a long notice.
 
-**Compensation.** UAE offers are usually quoted as a monthly AED package: basic salary plus housing, transport and other allowances. Compare total monthly package and its split, and treat "AED X all-in" and "AED X basic plus allowances" as different offers. Also look at annual flight tickets, health insurance, visa costs and end-of-service gratuity, which is calculated on basic salary, so a low basic with high allowances lowers it. The UAE levies no personal income tax, so compare gross figures only against other UAE offers.
+**Compensation.** UAE offers are usually quoted as a monthly AED package: basic salary plus housing, transport and other allowances. Compare total monthly package and its split, and treat "AED X all-in" and "AED X basic plus allowances" as different offers. Also look at annual flight tickets, the health insurance level and end-of-service gratuity. Basic health cover has been mandatory for private-sector employees in every emirate since 1 January 2025, so compare what an offer adds beyond it. The gratuity is 21 days' basic wage for each of the first five years and 30 days for each later year, capped at two years' wage (Article 51), so a low basic with high allowances lowers it. The law forbids charging the worker recruitment and employment costs, so **FLAG** a posting or offer that asks the candidate to pay for the visa or hiring. These rules cover private-sector employers under the federal Labour Law: companies in the DIFC and ADGM free zones follow their own employment laws (the DIFC replaced the gratuity with its DEWS savings scheme), and government employers follow their own HR rules, so check which applies. The UAE levies no personal income tax, so compare gross figures only against other UAE offers.
 
 **Arabic.** The Language Gate applies unchanged. Only a job-condition requirement counts ("Arabic required"); "Arabic is a plus" does not. Postings that ask for an "Arabic speaker" usually mean spoken Arabic, so a candidate whose spoken and written levels differ should declare both in the Languages table (for example "Arabic — fluent spoken, basic written").
 
