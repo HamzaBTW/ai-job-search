@@ -1,5 +1,5 @@
 ---
-framework_version: 1.0.1
+framework_version: 1.0.2
 ---
 
 # Interview Preparation Guide
@@ -72,7 +72,7 @@ Prepare these when interviewing in the UAE. Answers belong to the candidate; wri
 ### "How long do you plan to stay in the UAE?"
 > [PREPARE YOUR ANSWER - employers worry about retention and visa costs; be honest and tie your answer to the role]
 
-Questions worth adding to the ones below: the probation period, how soon the visa, labour card and health insurance are processed, whether flight tickets and end-of-service gratuity are included, and the working week and hours.
+Questions worth adding to the ones below: the probation period, whether the role needs an attested degree for the work permit (some do, and attestation takes time), how soon the visa, labour card and health insurance are processed, whether flight tickets and end-of-service gratuity are included, and the working week and hours.
 
 ## Questions You Should Ask Interviewers
 
