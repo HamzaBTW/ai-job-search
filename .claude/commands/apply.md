@@ -20,7 +20,14 @@ This rule is the input side of the Step 3 Factual Grounding Audit, not a competi
 
 ## Step 0: Parse Input
 
-- If `$ARGUMENTS` looks like a URL, **dispatch the `posting-fetcher` agent** via the Agent tool (`subagent_type: posting-fetcher`, the shipped definition in `.claude/agents/posting-fetcher.md`: it can read and fetch but not edit or write, so the component that touches the raw web page has no way to act on it). Pass it the URL only - no profile data, no pasted posting text. It discovers installed portals itself, follows the escalation order below, runs `tools/posting_guard.py` on whatever it retrieved, and returns the gate's verdict, its findings, the extracted metadata and the **cleaned posting text**. The escalation order it applies, from `.claude/skills/job-application-assistant/09-web-research.md`:
+> **Windows:** run these tools as `python`, not `python3`. A python.org install ships no `python3`, so that name reaches the Microsoft Store alias, which either exits 49 with no output (#669) or starts a separate Store Python without the packages `pip` installed (such as pypdf). `.claude/settings.json` allows both spellings.
+
+- **Indeed URLs are never fetched** (Indeed's terms prohibit scraping): a URL whose host is `indeed.com`, any subdomain of it (`to.indeed.com`, `ae.indeed.com`) or an Indeed country domain (`indeed.co.uk`) skips the `posting-fetcher` agent and every fetch below. Instead look for the text `/scrape` stored from the Indeed connector:
+  ```bash
+  python3 tools/rank_state.py posting --url "$ARGUMENTS" | python3 tools/posting_guard.py --text --json
+  ```
+  (use `--key '<key>'` instead of `--url` when coming from `/rank`, which knows the key; the stored link changes on every connector call, so a link copied from Indeed itself rarely matches). Exit 0 gives you the cleaned text: use it and keep the verdict and findings for Step 1, exactly as for pasted text, and tell the user the text is from when the job was scraped and may be out of date. If no stored text is found, **stop and ask the user to paste the posting text** (or give the employer's own careers link for the role); never fetch the Indeed URL to fill the gap. Searching for the employer's own careers posting by name is still allowed, as it is not an Indeed page.
+- If `$ARGUMENTS` looks like any other URL, **dispatch the `posting-fetcher` agent** via the Agent tool (`subagent_type: posting-fetcher`, the shipped definition in `.claude/agents/posting-fetcher.md`: it can read and fetch but not edit or write, so the component that touches the raw web page has no way to act on it). Pass it the URL only - no profile data, no pasted posting text. It discovers installed portals itself, follows the escalation order below, runs `tools/posting_guard.py` on whatever it retrieved, and returns the gate's verdict, its findings, the extracted metadata and the **cleaned posting text**. The escalation order it applies, from `.claude/skills/job-application-assistant/09-web-research.md`:
   - **Portal CLI first:** If the URL's host matches an installed portal skill in `.agents/skills/` (derived from the board hosts in `.agents/skills/*/cli/src` and `url-reference.md`, e.g. `linkedin.com` -> `linkedin-search`), run that CLI's `detail` command first:
     ```bash
     bun run .agents/skills/<portal-skill>/cli/src/cli.ts detail "$ARGUMENTS" --format plain
@@ -44,8 +51,6 @@ Read the evaluation framework:
 
 Using the framework from `04-job-evaluation.md`, evaluate the job posting against the candidate's profile. If the salary lookup tool is configured, run:
 
-> **Windows:** run these tools as `python`, not `python3`. A python.org install ships no `python3`, so that name reaches the Microsoft Store alias, which either exits 49 with no output (#669) or starts a separate Store Python without the packages `pip` installed (such as pypdf). `.claude/settings.json` allows both spellings.
-
 ```bash
 python3 salary_lookup.py "<Company Name>" --json
 ```
@@ -65,6 +70,7 @@ Before proceeding to drafting, inspect the posting URL's hostname to verify prov
    - `smartrecruiters.com`
    - `workable.com`
    *Look-alike parsing:* the host must match the apex exactly or end with `.<apex>`. Look-alike prefix tricks (e.g. `evil-greenhouse.io`), suffix spoofing (e.g. `job-boards.greenhouse.io.evil.com`), userinfo tricks (`https://greenhouse.io@evil.com/`), and unfamiliar subdomains fail closed and must not be classified as an official ATS.
+   An Indeed host whose text came from the stored connector copy is reported as `source: Indeed connector (stored text)`, not as unverified: the connector is the approved route.
 3. **Neither (Unverified host):** name the host plainly in the evaluation output as unverified (`⚠ Unverified source host: <hostname> - not an installed portal board or known ATS apex`). Alert the user to verify the employer and link legitimacy before committing time and tokens to drafting.
 
 Present the evaluation to the user with:

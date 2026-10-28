@@ -4,6 +4,10 @@
 Pass a JSON array of search hits to `candidates` before fetching details, then
 pass the enriched entries to `store`. Both commands deduplicate against the
 current history and tracker; `store` writes the history atomically.
+
+A connector entry (Indeed) cannot be fetched later, so it carries the posting
+text as `description`. `store` runs it through posting_guard before writing,
+keeps only the cleaned text, and records the verdict as `description_guard`.
 """
 
 import argparse
@@ -13,7 +17,12 @@ from pathlib import Path
 from urllib.parse import urlsplit
 
 from job_key import make_key
+from posting_guard import guard
 from rank_state import STATE, TRACKER, load_state, norm, save_state, tracker_pairs
+
+# Cleaned connector text kept per entry. A full posting is a few thousand
+# characters; the cap only stops a runaway payload from bloating the history.
+DESCRIPTION_MAX = 20000
 
 
 def read_jobs(path: Path) -> list:
@@ -74,6 +83,29 @@ def select(jobs: list, seen: dict, tracker: set, *, strict: bool = False) -> tup
     return selected, counts
 
 
+def store_description(job: dict) -> None:
+    """Gate a connector entry's posting text in place; reject a new one without it.
+
+    /rank and /apply never fetch a connector URL (its site prohibits scraping),
+    so a `new` connector entry with no text could never be scored.
+    """
+    text = job.get("description")
+    if text is None:
+        job.pop("description", None)
+        job.pop("description_guard", None)
+        if job["source"] == "connector" and job["status"] == "new":
+            raise ValueError("a new connector job needs its posting text as description")
+        return
+    if not isinstance(text, str) or not text.strip():
+        raise ValueError("job description must be non-empty text")
+    cleaned, findings = guard(text, "auto")
+    cleaned = cleaned.strip()
+    if not cleaned:
+        raise ValueError("job description is empty once hidden content is removed")
+    job["description"] = cleaned[:DESCRIPTION_MAX]
+    job["description_guard"] = findings["verdict"]
+
+
 def run(args) -> int:
     if args.state.exists():
         doc, seen = load_state(args.state)
@@ -115,6 +147,7 @@ def run(args) -> int:
             raise ValueError("job has an invalid fit or status")
         if job["source"] not in ("cli", "websearch", "connector") or not isinstance(job["portal"], str):
             raise ValueError("job has an invalid portal or source")
+        store_description(job)
         key = make_key(job["company"], job["title"], job["url"])
         if key in seen:
             raise ValueError(f"canonical key already exists for another posting: {key}")
@@ -122,7 +155,12 @@ def run(args) -> int:
     if selected:
         args.state.parent.mkdir(parents=True, exist_ok=True)
         save_state(args.state, doc)
-    print(json.dumps({"added": [make_key(j["company"], j["title"], j["url"]) for j in selected], **counts}, ensure_ascii=False))
+    guards = {
+        make_key(j["company"], j["title"], j["url"]): j["description_guard"]
+        for j in selected if "description_guard" in j
+    }
+    print(json.dumps({"added": [make_key(j["company"], j["title"], j["url"]) for j in selected],
+                      "description_guard": guards, **counts}, ensure_ascii=False))
     return 0
 
 

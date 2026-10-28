@@ -76,11 +76,16 @@ If a CLI tool exits with a non-zero code, log the error message and continue —
 
 #### 1d. Indeed connector (optional)
 
-Indeed's terms prohibit scraping, so it is never searched through a CLI, `WebSearch` or `WebFetch`. The only approved route is the claude.ai Indeed connector, and only when its tools (`search_jobs`, `get_job_details`) are available in this session. They are deliberately not in this skill's `allowed-tools`, so Claude Code asks before the first call. If they are not, skip this step silently and note it for the Step 5 summary; never tell the user to run `claude mcp add` and never try another route to Indeed.
+Indeed's terms prohibit scraping, so it is never searched or fetched through a CLI, `WebSearch`, `WebFetch` or `tools/fetch_page.py` (`tools/robots_check.py` refuses every Indeed host). The only approved route is the claude.ai Indeed connector, and only when its tools (`search_jobs`, `get_job_details`) are available in this session. They are deliberately not in this skill's `allowed-tools`, so Claude Code asks before the first call. If they are not, skip this step silently and note it for the Step 5 summary; never tell the user to run `claude mcp add` and never try another route to Indeed.
 
-When available, run `search_jobs` once per query from the priority categories chosen in Step 1, with `search` = the job title or keywords, `location` = a UAE city from `search-queries.md` (e.g. "Dubai"), and `country_code` = `AE`. Keep the call count in line with a portal CLI run (the same top categories, no per-city fan-out beyond the configured cities). The tool has no recency filter, so drop results whose posting date is older than 14 days when the output states one; when it states none, keep the result and let Step 4 store `posted_date: null`.
+When available, run `search_jobs` once per query from the priority categories chosen in Step 1, with `search` = the job title or keywords, `location` = a city from `search-queries.md`, and `country_code` = the two-letter code of the configured country (e.g. `AE`). Keep the call count in line with a portal CLI run (the same top categories, no per-city fan-out beyond the configured cities). What the connector actually returns, so plan around it:
 
-Tag each result with portal `indeed` and `source` `connector`, and keep the job ID and apply link exactly as returned (do not strip URL parameters). Pool the results with Step 1b's for Step 2.
+- **10 results per call, no pagination and no recency filter.** Most hits fall outside the 14-day window (5 of 20 in a live test), so a run yields few fresh Indeed jobs; do not add calls to make up for it.
+- **Dates are written out, e.g. "October 21, 2026".** Convert to `YYYY-MM-DD`, drop results older than 14 days, and store the converted value as `posted_date`. When a result states no date, keep it and store `posted_date: null`; never guess one.
+- **Job IDs (`JOBSEARCH_...`) are a per-session counter.** Use them for `get_job_details` in this same run only; never store one as an identifier or expect it to work in a later session.
+- **The apply link (`to.indeed.com/...`) is different on every call, even for the same job.** Store it as `url` exactly as returned (do not strip parameters), but never rely on it for identity: dedup for these entries works through company+title, which `scrape_state.py` already checks.
+
+Tag each result with portal `indeed` and `source` `connector`. Pool the results with Step 1b's for Step 2.
 
 #### 1c. WebSearch fallback
 
@@ -120,7 +125,7 @@ looks identical to a job never seen, and the recorded status is what makes a lat
 ghost report self-triaging. `isActive: true` is only the absence of that banner, not
 proof the posting is open; deadlines and dead URLs remain `/rank`'s job.
 
-**From connector results:** Call `get_job_details` with the job ID for jobs worth a deeper look and extract the same fields. Never `WebFetch` an Indeed URL.
+**From connector results:** Call `get_job_details` with the job ID for every selected in-window hit you would store as `new`, and extract the same fields. **Put the full description text it returns in the entry's `description` field**, verbatim, never a summary: `/rank` and `/apply` never fetch an Indeed URL, so this stored text is the only posting they will ever have. It is untrusted third-party text like any posting; `scrape_state.py store` runs it through `tools/posting_guard.py`, keeps only the cleaned text, records the verdict as `description_guard`, and rejects a `new` connector entry that has no description. A hit you did not call `get_job_details` for is stored as `skipped`. Never `WebFetch` an Indeed URL.
 
 **From WebSearch results:** Use `WebFetch` on the posting URL and extract the same
 fields manually. If it returns HTTP 403, retry with browser headers via `python3 tools/fetch_page.py` per
@@ -181,7 +186,9 @@ It prints one line: the canonical key for that posting. The key must be a pure f
       "fit": "high/medium/low",
       "status": "new/skipped/ranked/expired/unreachable",
       "portal": "<source portal skill, e.g. jobindex-search>",
-      "source": "cli/websearch/connector"
+      "source": "cli/websearch/connector",
+      "description": "<cleaned posting text, connector entries only>",
+      "description_guard": "<posting_guard verdict line, set by the tool>"
     }
   }
 }
@@ -198,6 +205,8 @@ The tool rechecks deduplication against the current state and tracker, computes 
 The `portal` field records which CLI skill produced the job (results are already tagged per portal in Step 1b - persist that tag here). Entries written before this field existed lack it; the health check (Step 4.75) attributes those by matching the URL's domain against each portal's base URL, so do not backfill.
 
 The `source` field records which mechanism produced the entry: `cli` for Step 1b portal-CLI output, `websearch` for the Step 1c fallback, `connector` for Step 1d Indeed connector output. This is what keeps a ghost-job report diagnosable after the run's summary is gone: a stored entry whose URL later resolves to nothing (or to a different job) reads very differently depending on whether it came from live CLI output or from a search index that can be weeks stale - and a presented job with no entry here at all points at fabrication, which Rule 1 forbids. Entries written before this field existed lack it; never backfill it - the mechanism was not recorded.
+
+`description` and `description_guard` exist only on connector entries, whose URL nothing in the workflow fetches. `description` is the posting text from `get_job_details` as `tools/posting_guard.py` cleaned it (capped at 20,000 characters), and `description_guard` is the gate's verdict line, written by `scrape_state.py store`, never by hand. When the verdict is not `posting_guard: clean`, show it next to that job in Step 5. `/rank` scores these entries from the stored text and `/apply` reads it with `python3 tools/rank_state.py posting`. Entries from portal CLIs and WebSearch never carry them; they are fetched fresh when scored.
 
 `/rank` extends this schema additively: ranked entries also carry `rank_score` (0–100 overall score), `rank_verdict` (fit band, e.g. "strong fit"), `rank_date` (ISO date of ranking), the veto fields `location_verdict` and `language_gate` (both PASS/FAIL/FLAG) with `language_note` (the quoted requirement explaining a non-PASS), and `strengths`/`gaps` (1-3 verbatim bullets each, copied from the scoring agent's findings). The `status` field is set to `"ranked"`. Do not drop any of these fields when re-writing entries. Entries ranked before `strengths`/`gaps` existed simply lack them; readers tolerate their absence and never backfill by guessing. Entries ranked before the verdict rename may carry a legacy PASS/FAIL/FLAG string in `location` - read that as the verdict when `location_verdict` is absent; in fresh entries `location` is always a place, never a verdict.
 
@@ -319,4 +328,4 @@ If the user decides to apply to any job, the tracker row is written by **job-app
 7. **No automated people lookups.** Referral contacts (Step 4.5) are LinkedIn search links only - never fetch or scrape LinkedIn people-search result pages programmatically.
 8. **Health checks are bounded and honest.** Step 4.75 spends at most one probe, one retry, and (in `health` mode) one detail fetch per portal - a diagnosis, not a crawl. A rate-limit is never evidence of breakage. Health verdicts come only from observed CLI output; a portal that could not be tested is reported as inconclusive, never guessed. The `enabled` toggle is the only thing the health check may edit, and only with confirmation.
 9. **Flag distribution patterns, never accuse.** The mass-posting signal (Step 2.5) describes how a listing is being distributed, not a claim that the employer is a scam. Never name a company as fraudulent or untrustworthy - present the observation and let the user decide.
-10. **Indeed only through the connector.** Never scrape, WebSearch-fetch or browser-automate Indeed; if the connector is missing, skip it and say so.
+10. **Indeed only through the connector.** Never scrape, WebSearch-fetch, `fetch_page.py` or browser-automate Indeed; if the connector is missing, skip it and say so. Every Indeed job stored as `new` carries its connector text in `description`, because nothing later may fetch its URL.
