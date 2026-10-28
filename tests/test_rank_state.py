@@ -77,7 +77,7 @@ class Candidates(RankStateCase):
         self.assertEqual([row["key"] for row in out["selected"]], ["a"])
         self.assertEqual(
             set(out["selected"][0]),
-            {"key", "title", "company", "url", "portal", "deadline", "posted_date"},
+            {"key", "title", "company", "url", "portal", "deadline", "posted_date", "source", "stored_posting"},
             "the projection is the point: strengths/gaps and every other stored field "
             "stay on disk rather than entering the conversation",
         )

@@ -18,7 +18,9 @@ Properties, each pinned by tests/test_fetch_page.py:
   * robots.txt is enforced, not advised. robots_check.gate() runs before each
     GET, including redirect targets, and a non-zero gate exits 1 with its
     message; no flag skips it. The retry is for firewalls on sites whose
-    published policy allows access, never for sites that said no.
+    published policy allows access, never for sites that said no. Hosts
+    whose terms prohibit scraping (Indeed) are refused the same way, before
+    the gate, redirects included.
   * Fetched content never lands in the repo. --out defaults to the system temp
     directory and a path that resolves inside the repo root is refused.
   * Bounded: 45 s, 5 redirects, 10 MB - on both the curl and the urllib path,
@@ -58,7 +60,7 @@ from urllib.request import HTTPRedirectHandler, Request, build_opener
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from page_decode import decode_page  # noqa: E402
-from robots_check import BROWSER, gate  # noqa: E402
+from robots_check import BROWSER, gate, terms_blocked, terms_message  # noqa: E402
 
 ROOT = Path(__file__).resolve().parent.parent
 ACCEPT = "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"
@@ -229,13 +231,14 @@ def main(argv=None) -> int:
             scheme = urlsplit(current).scheme.lower()
             if scheme not in ("http", "https"):
                 raise ValueError(f"redirect target must be http(s), got scheme {scheme!r}")
-            rc, message = gate(current)
+            blocked = terms_blocked(current)
+            rc, message = (1, terms_message(blocked)) if blocked else gate(current)
             print(message)
             if rc != 0:
                 print(
-                    "fetch_page: refused - robots.txt does not permit this path, so the "
-                    "browser-header retry does not run. Go to escalation step 4: search for "
-                    "the employer's own posting."
+                    "fetch_page: refused - robots.txt or the site's terms do not permit this "
+                    "path, so the browser-header retry does not run. Go to escalation step 4: "
+                    "search for the employer's own posting."
                 )
                 return 1
             if deadline is None:

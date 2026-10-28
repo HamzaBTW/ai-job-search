@@ -19,6 +19,10 @@ Rules implemented (RFC 9309), deliberately on the cautious side:
   * any other failure to read robots.txt leaves permission unconfirmed,
     and the retry does not happen - including a User-agent, Allow or
     Disallow line holding U+FFFD, i.e. a byte that is not valid UTF-8
+  * a host whose terms of use prohibit automated access (Indeed) is refused
+    before robots.txt is read: robots.txt is not the only "no" a site gives.
+    gate() stays the robots.txt decision; the CLI and fetch_page.py check
+    terms_blocked() first
 
 Usage:  python3 tools/robots_check.py <url>
 Exit 0 = the retry may proceed. Exit 1 = do not retry; go to escalation step 3.
@@ -143,6 +147,29 @@ def allowed(text, agent, path):
             best_len, best_allow = n, is_allow      # ties -> Disallow wins (cautious)
     return True if best_len < 0 else best_allow
 
+# Sites whose terms of use prohibit scraping even where robots.txt would allow
+# it. They are reached only through an approved connector (job-scraper Step 1d)
+# and never fetched. Matched on the registrable name, so subdomains
+# (to.indeed.com, ae.indeed.com) and country domains (indeed.co.uk) are covered;
+# a third-level "indeed" label also matches, which fails closed.
+TERMS_BLOCKED = ('indeed',)
+
+def terms_blocked(url):
+    """The blocked name when the URL's host belongs to a TERMS_BLOCKED site, else None."""
+    try:
+        host = (urlsplit(url).hostname or '').lower().rstrip('.')
+    except ValueError:
+        return None
+    labels = host.split('.')
+    for name in TERMS_BLOCKED:
+        if name in labels[-3:-1]:
+            return name
+    return None
+
+def terms_message(name):
+    return (f'DISALLOWED by {name} terms of use - never fetched; '
+            'use the stored connector text or ask the user to paste the posting')
+
 def gate(url):
     parts = urlsplit(url)
     path = unquote(parts.path) or '/'
@@ -191,6 +218,7 @@ if __name__ == '__main__':
     if len(sys.argv) != 2:
         print('usage: python3 tools/robots_check.py <url>', file=sys.stderr)
         sys.exit(2)
-    rc, msg = gate(sys.argv[1])
+    blocked = terms_blocked(sys.argv[1])
+    rc, msg = (1, terms_message(blocked)) if blocked else gate(sys.argv[1])
     print(msg)
     sys.exit(rc)

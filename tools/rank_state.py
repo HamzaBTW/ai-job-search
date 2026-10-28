@@ -7,7 +7,7 @@ cost is paid on every run regardless of how many jobs are actually scored, and
 it grows for the life of the workspace, since seen_jobs.json is append-only by
 design and most stored entries are `skipped`.
 
-This moves the state-file traffic into code. Three subcommands:
+This moves the state-file traffic into code. Four subcommands:
 
   candidates   select the eligible entries for this run and project only the
                fields a scoring agent needs
@@ -16,6 +16,8 @@ This moves the state-file traffic into code. Three subcommands:
   apply        write scoring results back to seen_jobs.json and print the
                ranked/vetoed/expired/unreachable/gave_up rows Step 5's
                report is built from
+  posting      print one entry's stored posting text (a connector entry,
+               whose URL is never fetched), found by --key or --url
 
 Selection and projection follow Step 1's existing rules exactly (status
 filter, tracker exclusion, focus filter, `--limit`/`--all`); the write-back
@@ -32,9 +34,11 @@ Usage:
   python3 tools/rank_state.py candidates [--all] [--focus TEXT] [--limit N]
   python3 tools/rank_state.py sweep [--write] [--exclude KEY,KEY]
   python3 tools/rank_state.py apply --results results.json [--dry-run] [--now ISO-DATETIME]
+  python3 tools/rank_state.py posting (--key KEY | --url URL)
 
-Both subcommands print JSON on stdout. Exit 0 on success, 1 on a usage or
-state error, or on `apply` when any result could not be written.
+All but `posting` print JSON on stdout; `posting` prints the stored text.
+Exit 0 on success, 1 on a usage or state error, on `apply` when any result
+could not be written, or on `posting` when the entry holds no stored text.
 """
 
 import argparse
@@ -178,6 +182,11 @@ def entry_location_verdict(entry: dict) -> str | None:
     return legacy if legacy in ("PASS", "FAIL", "FLAG") else None
 
 
+def has_posting(entry: dict) -> bool:
+    text = entry.get("description")
+    return isinstance(text, str) and bool(text.strip())
+
+
 def cmd_candidates(args) -> int:
     _, seen = load_state(args.state)
     excluded = tracker_pairs(args.tracker)
@@ -210,6 +219,9 @@ def cmd_candidates(args) -> int:
                 "portal": entry.get("portal"),
                 "deadline": entry.get("deadline"),
                 "posted_date": entry.get("posted_date"),
+                "source": entry.get("source"),
+                # The text itself stays on disk; the scorer reads it with `posting`.
+                "stored_posting": has_posting(entry),
             }
         )
 
@@ -513,6 +525,28 @@ def cmd_apply(args) -> int:
     return 1 if errors else 0
 
 
+def cmd_posting(args) -> int:
+    """Stored posting text for one entry. It was gated by posting_guard when
+    /scrape stored it; callers gate it again before reading it as content."""
+    _, seen = load_state(args.state)
+    if args.key is not None:
+        entry = seen.get(args.key)
+        label = f"key {args.key}"
+    else:
+        wanted = args.url.strip().rstrip("/")
+        matches = [
+            e for e in seen.values()
+            if isinstance(e, dict) and isinstance(e.get("url"), str) and e["url"].strip().rstrip("/") == wanted
+        ]
+        entry = matches[0] if len(matches) == 1 else None
+        label = f"url {args.url}" if len(matches) < 2 else f"url {args.url} (matches {len(matches)} entries)"
+    if not isinstance(entry, dict) or not has_posting(entry):
+        print(f"rank_state: no stored posting text for {label}", file=sys.stderr)
+        return 1
+    print(entry["description"])
+    return 0
+
+
 def _force_utf8_output() -> None:
     """Write UTF-8 whatever the host's default encoding is.
 
@@ -555,6 +589,12 @@ def main() -> int:
     app.add_argument("--results", required=True, help="JSON array from the scoring agents")
     app.add_argument("--dry-run", action="store_true")
     app.set_defaults(func=cmd_apply)
+
+    post = sub.add_parser("posting", parents=[common], help="print an entry's stored posting text")
+    which = post.add_mutually_exclusive_group(required=True)
+    which.add_argument("--key")
+    which.add_argument("--url")
+    post.set_defaults(func=cmd_posting)
 
     args = ap.parse_args()
     return args.func(args)
