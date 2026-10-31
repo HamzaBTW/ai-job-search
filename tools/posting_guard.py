@@ -10,7 +10,8 @@ evaluates anything:
   * hidden HTML (display:none, visibility:hidden, opacity:0, font-size:0,
     color:transparent, clip/clip-path, off-screen positioning, a zero-height
     or zero-width box with overflow:hidden, the `hidden` attribute,
-    aria-hidden; the style value is read the way a browser reads it, with
+    aria-hidden, the conventional screen-reader-only classes such as
+    `sr-only` and `visually-hidden`; the style value is read the way a browser reads it, with
     entities decoded and CSS comments removed) - removed from the text; its content is scanned,
     and reported as excerpts under `hidden_blocks`. Comments and
     script/style/noscript/svg/template blocks are removed and scanned too but
@@ -251,9 +252,29 @@ def _style(attrs: dict) -> str:
     return CSS_COMMENT.sub("", html.unescape(attrs.get("style", "")))
 
 
+# Conventional screen-reader-only class names (Tailwind, Bootstrap 4/5,
+# HTML5 Boilerplate, WordPress). The site's stylesheet moves these off-screen,
+# and the guard never reads stylesheets, so the names are the only signal.
+# Sighted readers never see the text: a page can hide a prompt in one, and
+# button announcements like "Job removed" on a Save toggle read as posting text.
+SR_ONLY_CLASSES = frozenset({"sr-only", "visually-hidden", "visuallyhidden", "screen-reader-text"})
+# Variants that reveal the text only while it has focus (skip links) keep it
+# hidden for a reader; any other `not-sr-only` (plain or at a breakpoint) shows it.
+FOCUS_VARIANTS = ("focus:", "focus-within:", "focus-visible:")
+
+
+def _screen_reader_only(attrs: dict) -> bool:
+    tokens = html.unescape(attrs.get("class", "")).split()
+    if not SR_ONLY_CLASSES.intersection(tokens):
+        return False
+    return not any(t.endswith("not-sr-only") and not t.startswith(FOCUS_VARIANTS) for t in tokens)
+
+
 def _is_hidden(raw_attrs: str) -> bool:
     attrs = _attrs(raw_attrs)
     if "hidden" in attrs or attrs.get("aria-hidden", "").strip().lower() == "true":
+        return True
+    if _screen_reader_only(attrs):
         return True
     style = _style(attrs)
     if HIDDEN_STYLE.search(style):
