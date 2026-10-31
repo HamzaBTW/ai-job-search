@@ -228,12 +228,14 @@ Once the reviewer agent returns its feedback:
 
 0. **Write the research cache.** If the reviewer's message ends with a `### Company research (for the cache)` block, write it to `company_research/<normalized-company-name>.json` per the Company Research Cache section in `04-job-evaluation.md` (same normalization rule, same schema, `fetched_date` today). The reviewer cannot write files; this is the one place the cache gets written on the `/apply` path.
 1. **Apply Part A (structured edits) directly with the Edit tool.** Do NOT re-read the draft files — you already have them in context from Step 2, and the reviewer's `old_string` values were quoted from that same text. For each edit in the JSON array, call `Edit` with the given `file`, `old_string`, and `new_string`. Skip any whose rationale would require fabricating content.
+
+   **Give every Part A edit an outcome**, and keep the list until Step 6: `applied`, `skipped` (with the reason, e.g. it would fabricate, or Part B already covered it), or `failed`. When an edit fails, usually because an earlier edit changed the same text, re-read that part of the file and look for the reviewer's target in the current text. If the file already says what `new_string` says, mark it `applied`. Otherwise retry once against the current wording, keeping the reviewer's intent and changing nothing else. If the retry fails too, mark it `failed`. Never drop a failed edit silently: Step 6 reports it, so the user can apply it by hand or decide to leave it.
 2. **Apply Part B (narrative suggestions)** using judgment. These need interpretation, not mechanical replacement. Walk through every Part B category the reviewer returned and address it:
    - **Missed keywords/requirements:** add the keyword or capability where it fits naturally in the CV or cover letter. Prefer the experience bullets (concrete evidence) over the profile statement (abstract claim).
    - **Company/department-specific angles:** weave the reviewer's research into the cover letter opening or motivation paragraph. Verify every company claim via WebFetch/WebSearch before including it — do not trust reviewer research at face value.
    - **Action-oriented reframing:** rewrite passive or generic phrasing (CV profile statement, cover letter opening, bullet leads). Structural weakness that the reviewer flagged without a clean JSON edit lives here.
    - **Tone and style issues:** apply the writing-style-guide fixes (no em-dashes, no cliches, no apologetic hedging, consistent first-person active voice).
-   Use Edit for targeted changes; only re-read a file if an edit fails because the surrounding text has shifted.
+   Use Edit for targeted changes; only re-read a file if an edit fails because the surrounding text has shifted. A Part B change whose Edit still fails after that re-read is `failed` too, and Step 6 lists it with the Part A edits.
 3. Do NOT incorporate any suggestion that would fabricate skills or experience. If a posting requirement is a genuine gap, acknowledge it honestly and frame adjacent experience instead.
 
 After all edits are applied, the two files on disk are the final drafts.
@@ -370,6 +372,9 @@ Run the full verification checklist from `CLAUDE.md` now — this is the **only*
 
 ### Verification Checklist
 Report pass/fail for each item in the CLAUDE.md verification checklist (factual accuracy, targeting, consistency, quality).
+
+### Reviewer Edits
+One line with the Step 4 tally: how many Part A edits were applied, skipped and failed (plus any failed Part B change). Under it, list every skipped edit with its reason, and every failed edit with its file and a short quote of the reviewer's `old_string` and `new_string`, so the user can find it and apply it by hand. If any edit failed, say so at the top of the report too: the drafts are never presented as complete, and the checklist never says pass, while a reviewer fix is missing without the user knowing.
 
 ### Key Tailoring Decisions
 Summarize 3-5 key decisions made to tailor the application:
