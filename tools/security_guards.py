@@ -176,6 +176,8 @@ REQUIRED_IGNORE_RULES = [
     "!cv/main_example.tex",
     # ATS text extractions (/apply step 5d) carry the CV's full text.
     "cv/*.txt",
+    # Per-application folders of final PDFs (/apply Step 5f).
+    "cv/*/",
     "cover_letters/cover_*.*",
     # /apply also recognizes the uppercase Cover_* naming variant.
     "cover_letters/Cover_*.*",

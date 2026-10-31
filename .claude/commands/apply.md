@@ -366,6 +366,21 @@ After the final clean compile (and after 5b-5d have passed), delete the intermed
 - **Custom template whose compile command redirects to `build/`:** also `rm -rf cv/build cover_letters/build` (`/add-template` Step 4 already says `/apply` must delete it).
 - **Zero-artifact toolchain (e.g. `typst compile`):** nothing to delete.
 
+### 5f. Copy the final PDFs to the application folder
+
+Each application gets its own folder with the two PDFs the user will send, named like the CV they already use. Copy, not move: the sources and PDFs stay where they compile (`cv/main_<company>_<role>.*`, `cover_letters/cover_<company>_<role>.*`, next to `cover.cls` and its fonts), and the tracker keeps pointing at them.
+
+1. **Folder:** `cv/<company>_<role>/`, with `<company>_<role>` from the **Subfolder naming** rule in `documents/README.md` (the same name as the filenames above and the archive folder).
+2. **Names:** take the file name of the user's own CV in `documents/cv/` (the newest `.pdf` or `.docx` there, without its extension), e.g. `Jane_Doe_CV`. The CV copy is `<that name>.pdf`. For the cover letter, replace the word `CV`, `Resume` or `Résumé` in that name with `Cover_Letter` (`Jane_Doe_CV` -> `Jane_Doe_Cover_Letter.pdf`); if the name has none of those words, add `_Cover_Letter` (`Jane Doe 2026` -> `Jane Doe 2026_Cover_Letter.pdf`). If there is no CV there, build the names from the profile's name: `<First>_<Last>_CV.pdf` and `<First>_<Last>_Cover_Letter.pdf`. Drop any `/`, `\`, `:` or other character a file name cannot hold.
+3. **Copy** both PDFs, and overwrite the copies if the folder already exists (a redraft replaces the old version):
+   ```bash
+   mkdir -p "cv/<company>_<role>"
+   cp "cv/main_<company>_<role>.pdf" "cv/<company>_<role>/<CV name>.pdf"
+   cp "cover_letters/cover_<company>_<role>.pdf" "cv/<company>_<role>/<cover letter name>.pdf"
+   ```
+
+The folder is gitignored (`cv/*/`), like every other personal output.
+
 ---
 
 ## Step 6: Present Final Output
@@ -389,6 +404,7 @@ Summarize 3-5 key decisions made to tailor the application:
 List the files written:
 - `cv/main_<company>_<role><CV_EXT>`
 - `cover_letters/cover_<company>_<role><COVER_EXT>`
+- `cv/<company>_<role>/` with the two PDFs to send (Step 5f), each with its full path
 
 Tell the user: "Both files are ready for your review. Open them to check the final output before compiling."
 

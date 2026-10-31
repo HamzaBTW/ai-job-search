@@ -66,6 +66,10 @@ skills-lock.json
 cv/main_*.*
 !cv/main_example.tex
 cv/*.txt
+# Per-application folders (/apply Step 5f): copies of the final CV and cover
+# letter PDFs, named after the user's own CV. The PDFs are also covered by
+# *.pdf; this keeps anything else saved there out of git as well.
+cv/*/
 cover_letters/cover_*.*
 cover_letters/Cover_*.*
 !cover_letters/cover_example.tex
