@@ -33,7 +33,10 @@ evaluates anything:
     never removed (an SSH administrator posting legitimately says "SSH");
   * URLs that only exist in hidden content - listed;
   * words mixing Latin with Cyrillic or Greek letters (look-alike spoofing) -
-    listed.
+    listed;
+  * too little text to be a posting (under MIN_POSTING_WORDS words: an empty
+    fetch, or a page that loads its content with JavaScript) - counted under
+    `word_count`, and the verdict says "no posting text" instead of "clean".
 
 Removal is the defense: hidden content never reaches the cleaned text the
 workflow reads. The ⚠ in the verdict is for the user and fires only on signals
@@ -418,6 +421,19 @@ def _plural(n: int, one: str, many: str) -> str:
     return f"{n} {one if n == 1 else many}"
 
 
+# A real posting runs to hundreds of words. Below this the input is an empty
+# fetch, a shell page that loads its content with JavaScript (Oracle HCM's
+# CandidateExperience returned only "Uber"), or a title alone. Saying "clean"
+# about it reads as "safe to score"; there is nothing to score.
+MIN_POSTING_WORDS = 30
+
+
+def _thin_note(words: int) -> str:
+    size = "empty input" if words == 0 else f"only {_plural(words, 'word', 'words')} of text"
+    return (f"{size}; this is not a posting (the page may load its content with "
+            "JavaScript) - try the next fetch method or ask the user to paste the text")
+
+
 def verdict(findings: dict) -> str:
     alarms = []
     n = len(findings.get("instruction_like") or [])
@@ -445,8 +461,14 @@ def verdict(findings: dict) -> str:
         context.append(_plural(n, "hidden URL", "hidden URLs"))
     removed = " and ".join(context)
 
+    words = findings.get("word_count")
+    thin = words is not None and words < MIN_POSTING_WORDS
     if alarms:
         line = "posting_guard: ⚠ " + ", ".join(alarms) + " - review before continuing"
+        line = f"{line} ({removed} removed)" if removed else line
+        return f"{line}; {_thin_note(words)}" if thin else line
+    if thin:
+        line = f"posting_guard: no posting text - {_thin_note(words)}"
         return f"{line} ({removed} removed)" if removed else line
     if removed:
         return f"posting_guard: clean ({removed} removed, none instruction-like)"
@@ -474,6 +496,7 @@ def guard(raw: str, mode: str):
     tf["invisible_text"] += hidden_tf["invisible_text"]
     hidden_text = "\n".join([hidden_text, *tf["invisible_text"]])
     findings = {"hidden_blocks": hidden_blocks, **tf, **scan(text, hidden_text)}
+    findings["word_count"] = len(text.split())
     findings["verdict"] = verdict(findings)
     return text, findings
 

@@ -63,6 +63,8 @@ The HTTP status is information, not a verdict: a `403` body still tells you what
 
 Modern sites embed real copy inside JSON blobs in the markup, so useful text often survives with escaped `\n` and stray attribute fragments around it. That is normal. Read through the noise rather than assuming the extraction failed. To find specific facts in a large page, grep the saved `page.html` or the printed text for keywords (office cities, "since", regulator names) with surrounding context instead of printing the whole document; raise `--max-chars` only when the posting body is genuinely longer.
 
+The opposite case is a page with almost no text at all: a large HTML file whose only words are the company name. Some apply pages (Oracle HCM "CandidateExperience", Workday) send an empty shell and load the posting with JavaScript, which none of these fetch methods run. `posting_guard.py` reports it as `no posting text`. That is a failed rung, not a posting: go on to the next one, and if none works, ask the user to paste the posting text.
+
 ## Escalation order
 
 Try these in order and stop at the first that yields real content:
