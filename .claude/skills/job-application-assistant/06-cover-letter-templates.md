@@ -148,6 +148,17 @@ The font wrapper is mandatory — if you just move `\begin{itemize}` outside `\l
 - Use `\textbf{Label:}` for category-style bullets
 - A bullet whose text begins with a literal `[` must be braced: `\item {[text]}`. Unbraced, LaTeX parses `[text]` as `\item`'s optional label and renders it off the left page edge, missing from the PDF text layer entirely
 
+### Gaps: Bridge, Don't Confess
+A required skill the candidate lacks still gets addressed (see `/apply` "Requirement coverage"), but as a bridge from what they have, not as a confession. Honesty does not change: never imply a skill, tool or result the profile does not support.
+- **One sentence inside a strength, never a separate paragraph.** Lead with the closest real evidence, then say where it extends to. No "gaps" heading, no "two gaps, stated plainly" opener, no list of shortcomings.
+- **No sentence starts with "I have not" or "I don't yet".** Say what the candidate does, at its true size: "I use SQL to clean and join datasets for my analysis work" is honest and forward-looking. "I have not yet queried datasets at your scale" is honest and reads as a reason to reject.
+- **Only must-haves get a bridge.** A nice-to-have the candidate lacks is simply left out of the letter (engage nice-to-haves only where there is real adjacency, per `/apply`).
+- **A claim that needs a caveat becomes a narrower claim.** If "this is the same workflow as demand forecasting" overstates, do not append "which I have not done on real data"; write the claim that is true on its own: "the same steps, from features to evaluation, that demand forecasting uses".
+- **The full answer belongs in the interview.** Prepare it in `07-interview-prep.md`'s gap question (acknowledge, bridge, show the plan), not in the letter.
+
+Weak: "Two gaps, stated plainly. SQL is a must-have in your posting and I have not yet worked with SQL at scale."
+Strong: "I query and clean data in SQL for [PROJECT], and I am ready to take that to [COMPANY]'s scale."
+
 ### LaTeX Special Characters
 Escape these wherever they appear in body text:
 - Ampersand: `\&` (company names: Brüel \& Kjær, H\&M) - unescaped, the compile fails loudly
@@ -164,6 +175,7 @@ Escape these wherever they appear in body text:
 - [ ] No em-dashes (use commas or periods instead)
 - [ ] No cliches or empty filler
 - [ ] Every claim backed by specific example
+- [ ] Each must-have gap is a one-sentence bridge from real evidence, with no "I have not" sentence and no gaps paragraph (see "Gaps: Bridge, Don't Confess")
 - [ ] Forward-looking framing: focuses on tasks you'll solve, not just past duties
 - [ ] Motivation section references this specific company's mission/values
 - [ ] Company name and role are correct throughout
