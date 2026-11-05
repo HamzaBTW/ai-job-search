@@ -21,18 +21,18 @@ Primary (UAE-usable sources - scaffold more with `/add-portal`):
 
 Checked for `/add-portal` in October 2026 and not scaffolded (re-check before relying on this; sites change):
 - **Bayt.com, GulfTalent** - bot protection blocks automated requests; only a paid unblocker would get through, which this repo does not use
-- **NaukriGulf** - robots.txt could not be confirmed, so it counts as not allowed
+- **NaukriGulf** - robots.txt could not be confirmed (first a timeout, on a re-check the server reset the connection), so it counts as not allowed
 - **Glassdoor** - login required
 - **Dubai Careers (dubaicareers.ae)** - robots.txt unreachable (connection reset), so not allowed; applying needs an account anyway
 - **Federal government jobs** - FAHR links to the federal iRecruitment portal, where you register to browse openings; login required. `fahr.gov.ae` and `mohre.gov.ae` list no vacancies themselves
-- **Dubizzle Jobs** - robots.txt permits `/jobs/`, but its terms of use could not be fetched, so automated access is unconfirmed. Read the terms yourself before building a skill; the listings skew towards entry-level and mass-market roles
+- **Dubizzle Jobs** - robots.txt permits `/jobs/`, but its terms of use (`dubizzle.com/legalhub/terms/`) forbid using scripts, robots, spiders, bots or crawlers to scrape the platform or compile a collection from it, so a portal skill is not allowed
 
 Secondary (company career pages via Google):
 - Direct Google searches with `site:` filters for known target companies (employer careers pages)
 
 ### Sources deliberately not used
 
-Bayt, GulfTalent, NaukriGulf and Glassdoor are **not** in the lists above, and not as `site:` fallbacks either: each was checked and either blocks automated access (Cloudflare challenge), requires a login, or could not have its robots.txt confirmed. A `site:` query would only route around that decision.
+Bayt, GulfTalent, NaukriGulf, Glassdoor and Dubizzle Jobs are **not** in the lists above, and not as `site:` fallbacks either: each was checked and either blocks automated access (Cloudflare challenge), requires a login, forbids scraping in its terms of use, or could not have its robots.txt confirmed. A `site:` query would only route around that decision.
 
 This is a status, not a ban on the portals. If you can build a compliant integration (robots.txt honored, no cookie reuse, no paid unblocking, no Cloudflare bypass), add it with `/add-portal` and send a PR.
 
