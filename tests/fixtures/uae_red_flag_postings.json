@@ -1,0 +1,82 @@
+[
+  {
+    "id": "fee-scam",
+    "company": "Example Gulf Staffing (fictional)",
+    "text": "Customer Service Executive - Dubai\nSalary AED 6,000 + free accommodation.\nTo confirm your offer, transfer AED 1,500 for visa processing and medical test to our agent today. Offer valid 24 hours only.\nApply: careers@example.com",
+    "quote": "transfer AED 1,500 for visa processing",
+    "row": "must pay for the visa",
+    "verdict": "do not draft"
+  },
+  {
+    "id": "whatsapp-webmail",
+    "company": "Example Trading LLC (fictional)",
+    "text": "Office Administrator - Sharjah\nSend your CV by WhatsApp only to the number on our poster, or from your personal Gmail to ours. No calls, no company email.",
+    "quote": "WhatsApp only",
+    "row": "WhatsApp, Telegram or a personal webmail",
+    "verdict": "careers page"
+  },
+  {
+    "id": "unverifiable-offer",
+    "company": "Example Manpower (fictional)",
+    "text": "Driver - Dubai\nYou are selected. Accept within 2 hours or the offer lapses. We cannot share the offer letter or its reference number until you reply YES.",
+    "quote": "Accept within 2 hours or the offer lapses",
+    "row": "offer letter that no one will let",
+    "verdict": "reference number"
+  },
+  {
+    "id": "hidden-agency",
+    "company": "Example Recruitment (fictional)",
+    "text": "Senior Accountant - Abu Dhabi\nOur client, a leading company in the region, is hiring. Employer name is confidential. Package: competitive.\nApply through our recruiter.",
+    "quote": "Employer name is confidential",
+    "row": "employer hidden",
+    "verdict": "FLAG, then proceed"
+  },
+  {
+    "id": "gender-race",
+    "company": "Example Nursery (fictional)",
+    "text": "English Teacher - Dubai\nFemale only. Must be of European origin. Salary AED 9,000.",
+    "quote": "Female only. Must be of European origin",
+    "row": "Gender, race, colour, ethnic origin, religion or sect",
+    "verdict": "likely discriminatory"
+  },
+  {
+    "id": "nationality-only",
+    "company": "Example Engineering (fictional)",
+    "text": "Site Engineer - Ajman\nIndian nationals only. 3+ years experience. Employment visa provided by the company.",
+    "quote": "Indian nationals only",
+    "row": "Nationality stated as a requirement",
+    "verdict": "does not name nationality"
+  },
+  {
+    "id": "age-marital-photo",
+    "company": "Example Hospitality (fictional)",
+    "text": "Front Desk Agent - Dubai\nSingle, under 35. Attach a full-length photo with your CV.",
+    "quote": "Single, under 35",
+    "row": "Age, marital status or a photo",
+    "verdict": "do not call them unlawful"
+  },
+  {
+    "id": "rush-walk-in",
+    "company": "Example Services (fictional)",
+    "text": "Sales Staff Needed\nImmediate joiner. Walk-in interview tomorrow. Send CV and photo.",
+    "quote": "Immediate joiner. Walk-in interview",
+    "row": "Immediate joiner",
+    "verdict": "ask for details"
+  },
+  {
+    "id": "visa-claim",
+    "company": "Example Logistics (fictional)",
+    "text": "Warehouse Coordinator - Dubai\nVisa provided. Sponsorship available for the right candidate.",
+    "quote": "Visa provided",
+    "row": "Visa provided",
+    "verdict": "Soft PASS"
+  },
+  {
+    "id": "clean-control",
+    "company": "Example Software FZ-LLC (fictional)",
+    "text": "Backend Engineer - Dubai Internet City\nExample Software FZ-LLC builds booking tools. Apply at https://careers.example.com/backend with your CV. Employment visa and health insurance provided by the employer. Salary AED 22,000 - 28,000 monthly, split on the careers page.",
+    "quote": "Apply at https://careers.example.com",
+    "row": null,
+    "verdict": null
+  }
+]

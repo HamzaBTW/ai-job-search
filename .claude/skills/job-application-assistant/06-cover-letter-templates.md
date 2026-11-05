@@ -1,5 +1,5 @@
 ---
-framework_version: 1.0.3
+framework_version: 1.0.4
 ---
 
 # Cover Letter Templates and Tailoring Guide
@@ -189,6 +189,7 @@ Escape these wherever they appear in body text:
 - **Residency and availability:** when the recruiter cannot tell from the CV, say it in one line: where the candidate is based, their visa situation, and when they can start (for example "based in [CITY] on a [VISA_STATUS], available from [DATE]"). State only what is true.
 - **Salary:** do not state a figure unless the posting asks. If it does, give a monthly package range in AED and say whether it is basic plus allowances or all-in.
 - **Emiratisation roles:** if the posting prefers UAE nationals and the candidate is not one, do not hide it. Cover the fit plainly in the letter rather than arguing the preference away.
+- **Restrictive postings:** if the posting asks for a trait the candidate does not have or does not want to share (a gender, nationality, age, marital status or photo), do not apologise for it, explain it, or volunteer the trait in the letter. Write the letter on skills and fit. Whether to apply at all is the user's call, made from the flag in `04-job-evaluation.md`; the letter is not the place to argue with the posting.
 
 ## Submission Guidelines (Best Practice)
 - Submit only the documents the employer requests

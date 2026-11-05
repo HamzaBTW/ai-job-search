@@ -1,5 +1,5 @@
 ---
-framework_version: 1.4.9
+framework_version: 1.4.10
 ---
 
 # CV Templates and Tailoring Guide
@@ -365,6 +365,7 @@ Apply these when the target country is the United Arab Emirates. They are guidan
 
 - **Nationality and visa status:** UAE recruiters commonly look for them near the top. Put them as literal text in the contact/profile area (for example `Nationality: [NATIONALITY] | Visa: [VISA_STATUS]`) so ATS extraction sees them. State only what is true and current.
 - **Photo and date of birth:** optional. Include them only if the user wants to; never add either by default.
+- **Religion, marital status, age and children:** not needed on a CV, even where some UAE or Gulf postings ask for them or older CV examples show them. Leave them off unless the user asks to include them, and say once that they are optional. A posting that requires one of them is covered by the red-flag table in `04-job-evaluation.md`.
 - **Availability:** a notice period or availability date ("Notice period: [NOTICE_PERIOD]", or "Available immediately") is acceptable in the profile line. Do not put current salary or salary expectations on the CV; answer those in the application form or when asked.
 - **Languages:** list English and Arabic (and any other working language) with levels. Where spoken and written Arabic differ, say so. See the Languages table guidance in the Candidate Profile and the Language Gate in `04-job-evaluation.md`.
 - **Attestation:** mention an attested degree only if the attestation is completed.
