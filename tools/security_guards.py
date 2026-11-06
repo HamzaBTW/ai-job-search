@@ -84,6 +84,8 @@ ALLOWED_PERMISSIONS = {
     "Bash(python3 tools/job_key.py:*)",
     "Bash(python tools/scrape_state.py:*)",
     "Bash(python3 tools/scrape_state.py:*)",
+    "Bash(python tools/source_mix.py:*)",
+    "Bash(python3 tools/source_mix.py:*)",
     "Bash(python tools/verify_pdf.py:*)",
     "Bash(python3 tools/verify_pdf.py:*)",
     "Bash(python tools/verify_layout.py:*)",
@@ -288,6 +290,8 @@ ALLOWED_SKILL_TOOLS = {
     "Bash(python3 tools/job_key.py:*)",
     "Bash(python tools/scrape_state.py:*)",
     "Bash(python3 tools/scrape_state.py:*)",
+    "Bash(python tools/source_mix.py:*)",
+    "Bash(python3 tools/source_mix.py:*)",
 }
 
 # The tools a shipped .claude/agents/*.md may list. These agents read untrusted

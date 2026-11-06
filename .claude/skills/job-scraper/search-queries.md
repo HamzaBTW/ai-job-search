@@ -47,6 +47,26 @@ bun run .agents/skills/freehire-search/cli/src/cli.ts search -q "<keyword>" --co
 bun run .agents/skills/freehire-search/cli/src/cli.ts search -q "<keyword>" --region mena --jobage 14 --format table
 ```
 
+## Source slots
+
+Each `/scrape` run splits its postings evenly across four sources, so one big portal does not fill the whole report. The table sets each source's share of new, in-window postings (before `/rank` scores them). The default is equal shares; change a number to favour a source, or override for one run with `/scrape --slots linkedin=5,freehire=5,indeed=5,careers=5`. A source that finds fewer than its share is reported, not padded: you choose whether to give its spare slots to the others or keep filling it (see `job-scraper/SKILL.md`, Step 4a).
+
+| Source | Slots | Route |
+|---|---|---|
+| linkedin | 5 | `linkedin-search` CLI (personal use only, keep volume low) |
+| freehire | 5 | `freehire-search` CLI, `--country AE` then `--region mena` |
+| indeed | 5 | claude.ai Indeed connector (`search_jobs`, `get_job_details` only) |
+| careers | 5 | employer careers pages found with `WebSearch`, robots.txt checked first |
+
+A portal you add with `/add-portal` is not in this table. Its postings are never capped, but the report lists them with the source tag they carry.
+
+## Careers-page employers
+
+Employers whose own careers pages the `careers` source searches (up to 10 per run). Keep the real list in your private profile (`01-candidate-profile.md`, Target Sectors), never in a public fork. When it is empty, `/scrape` suggests employers that keep appearing in your results and asks once before searching them.
+
+- [YOUR_TARGET_EMPLOYER_1]
+- [YOUR_TARGET_EMPLOYER_2]
+
 ## Query Categories
 
 Queries are grouped by priority. Write **each category in every language from your Languages table** (see Language scope above). Combine each query with your location terms (e.g. your city, region, or metro area) where the site supports it.

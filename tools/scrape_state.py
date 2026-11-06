@@ -8,6 +8,12 @@ current history and tracker; `store` writes the history atomically.
 A connector entry (Indeed) cannot be fetched later, so it carries the posting
 text as `description`. `store` runs it through posting_guard before writing,
 keeps only the cleaned text, and records the verdict as `description_guard`.
+
+`store` also records which of the four details a reader needs (company,
+location, description, apply link) the posting lacks, as `missing_details`
+(see source_mix.py). `drop` closes postings the user removed for lacking them:
+the entry stays in the history, marked skipped, so the posting never returns
+as new.
 """
 
 import argparse
@@ -18,6 +24,7 @@ from urllib.parse import urlsplit
 
 from job_key import make_key
 from posting_guard import guard
+from source_mix import missing_details
 from rank_state import STATE, TRACKER, load_state, norm, save_state, tracker_pairs
 
 # Cleaned connector text kept per entry. A full posting is a few thousand
@@ -106,6 +113,32 @@ def store_description(job: dict) -> None:
     job["description_guard"] = findings["verdict"]
 
 
+def drop_entries(seen: dict, keys: list[str]) -> dict:
+    """Mark entries skipped in place. Only `new` entries are closed.
+
+    A ranked, applied or otherwise advanced entry carries work the user did not
+    ask to discard, so it is reported and left alone.
+    """
+    dropped, unknown, kept = [], [], []
+    for key in keys:
+        entry = seen.get(key)
+        if not isinstance(entry, dict):
+            unknown.append(key)
+        elif entry.get("status") == "skipped":
+            dropped.append(key)
+        elif entry.get("status") != "new":
+            kept.append({"key": key, "status": entry.get("status")})
+        else:
+            entry["status"] = "skipped"
+            entry["dropped"] = True
+            gaps = entry.get("missing_details")
+            entry["dropped_reason"] = (
+                "missing details: " + ", ".join(gaps) if gaps else "closed by the user"
+            )
+            dropped.append(key)
+    return {"dropped": dropped, "unknown": unknown, "not_dropped": kept}
+
+
 def run(args) -> int:
     if args.state.exists():
         doc, seen = load_state(args.state)
@@ -133,6 +166,16 @@ def run(args) -> int:
         print(json.dumps({"portal": args.portal, "prior_entries": count}))
         return 0
 
+    if args.command == "drop":
+        keys = [k.strip() for k in (args.keys or "").split(",") if k.strip()]
+        if not keys:
+            raise ValueError("drop needs --keys")
+        result = drop_entries(seen, keys)
+        if result["dropped"]:
+            save_state(args.state, doc)
+        print(json.dumps(result, ensure_ascii=False))
+        return 0
+
     jobs = read_jobs(args.results)
     selected, counts = select(jobs, seen, tracker_pairs(args.tracker), strict=args.command == "store")
     if args.command == "candidates":
@@ -147,7 +190,14 @@ def run(args) -> int:
             raise ValueError("job has an invalid fit or status")
         if job["source"] not in ("cli", "websearch", "connector") or not isinstance(job["portal"], str):
             raise ValueError("job has an invalid portal or source")
+        words = job.pop("description_words", None)
+        if words is not None and (not isinstance(words, int) or isinstance(words, bool) or words < 0):
+            raise ValueError("description_words must be a whole number")
+        judged = words is not None or "description" in job
+        gaps = missing_details({**job, "description_words": words} if words is not None else job, judge_description=judged)
         store_description(job)
+        if gaps:
+            job["missing_details"] = gaps
         key = make_key(job["company"], job["title"], job["url"])
         if key in seen:
             raise ValueError(f"canonical key already exists for another posting: {key}")
@@ -166,14 +216,15 @@ def run(args) -> int:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    parser.add_argument("command", choices=("candidates", "store", "history"))
+    parser.add_argument("command", choices=("candidates", "store", "history", "drop"))
     parser.add_argument("--results", type=Path)
     parser.add_argument("--portal")
     parser.add_argument("--domain")
+    parser.add_argument("--keys", help="drop: comma-separated canonical keys of the entries to close")
     args = parser.parse_args()
     args.state, args.tracker = STATE, TRACKER
     try:
-        if args.command != "history" and args.results is None:
+        if args.command not in ("history", "drop") and args.results is None:
             parser.error("candidates and store need --results")
         return run(args)
     except ValueError as exc:
